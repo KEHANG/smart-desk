@@ -27,25 +27,32 @@ def signal2height(signal):
     return decrypt
 
 
-def report_heights():
-    serial0 = setup()
+def report_heights(serial0):
     current_signal = b''
     char = b''
     heights = []
-    while char != b'\x9d' or len(current_signal) == 0:
+    while serial0.in_waiting and (char != b'\x9d' or len(current_signal) == 0):
         char = serial0.read(1)
-        current_signal += char
         if char == b'\x9b':
             # starts a new signal if \x9d is observed.
             current_signal = char
-        if char == b'\x9d':
+        elif char != b'\x9d':
+            current_signal += char
+        else:
+            current_signal += char
+            # height signal should have length of 9 chars.
+            if len(current_signal) != 9: 
+                current_signal = b''
+                continue
             # add to heights if it's different from last one.
-            if len(heights) == 0 or heights[-1] != current_signal:
-                if len(current_signal) == 9:
-                    heights.append(current_signal)
-                    print(current_signal, signal2height(current_signal))
+            height = signal2height(current_signal)
+            if True: # len(heights) == 0 or heights[-1] != height:
+                heights.append(height)
+                print(current_signal, height)
             # then reinitialize current_signal
             current_signal = b''
+    return heights
+
 
 def setup():
     # Or GPIO.BOARD - GPIO Numbering vs Pin numbering
@@ -54,7 +61,6 @@ def setup():
     # Turn desk in operating mode by setting controller pin20 to HIGH
     # This will allow us to send commands and to receive the current height
     GPIO.setup(PIN_20, GPIO.OUT)
-    GPIO.output(PIN_20, GPIO.HIGH)
     # Set up serial communication.
     SERIAL_PORT = "/dev/ttyS0" # GPIO14 (TX) and GPIO15 (RX)
     serial0 = serial.Serial(SERIAL_PORT, 9600, timeout=500)
@@ -64,21 +70,44 @@ def setup():
 def teardown():
     GPIO.cleanup()
 
-
-def run_schedule():
+def measure_height():
+    # setup serial
     serial0 = setup()
-    serial0.write(down * 300)
+    # wake up the desk
+    GPIO.output(PIN_20, GPIO.HIGH)
+    time.sleep(.5)
+    serial0.write(wake_up)
+    time.sleep(.5)
+    GPIO.output(PIN_20, GPIO.LOW)
+    print(serial0.in_waiting)
+    heights = report_heights(serial0)
+
+
+def run_schedule(rounds):
+    serial0 = setup()
+    GPIO.output(PIN_20, GPIO.HIGH)
     iteration = 0
-    while iteration < 5:
-        print('Going up to rest 10 mins...')
-        serial0.write(up * 300)
-        time.sleep(600)
+    while iteration < rounds:
+        # first to work.
         print('Going down to work for 50 mins...')
-        serial0.write(down * 300)
-        time.sleep(3000)
+        if not GPIO.input(PIN_20):
+            print('desk inactive, activating desk...')
+            GPIO.output(PIN_20, GPIO.HIGH)
+        serial0.write(down * 600)
+        print('work starting')
+        time.sleep(30)
+        print('work ending')
+        # then to rest.
+        print('Going up to rest 10 mins...')
+        if not GPIO.input(PIN_20):
+            print('desk inactive, activating desk...')
+            GPIO.output(PIN_20, GPIO.HIGH)
+        serial0.write(up * 300)
+        time.sleep(30)
+        # after one round of work and rest, increment by 1 iteration.
         iteration += 1
     teardown()
 
 
 if __name__ == "__main__":
-    run_schedule()
+    run_schedule(2)
