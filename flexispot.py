@@ -81,6 +81,7 @@ def measure_height():
     GPIO.output(PIN_20, GPIO.LOW)
     print(serial0.in_waiting)
     heights = report_heights(serial0)
+    return heights
 
 
 def run_schedule(rounds):
@@ -93,21 +94,19 @@ def run_schedule(rounds):
         if not GPIO.input(PIN_20):
             print('desk inactive, activating desk...')
             GPIO.output(PIN_20, GPIO.HIGH)
-        serial0.write(down * 600)
-        print('work starting')
-        time.sleep(30)
-        print('work ending')
+        serial0.write(down * 800)
+        time.sleep(3000)
         # then to rest.
         print('Going up to rest 10 mins...')
         if not GPIO.input(PIN_20):
             print('desk inactive, activating desk...')
             GPIO.output(PIN_20, GPIO.HIGH)
-        serial0.write(up * 300)
-        time.sleep(30)
+        serial0.write(up * 600)
+        time.sleep(600)
         # after one round of work and rest, increment by 1 iteration.
         iteration += 1
     teardown()
 
 
 if __name__ == "__main__":
-    run_schedule(2)
+    run_schedule(5)
