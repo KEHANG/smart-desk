@@ -7,7 +7,12 @@ PIN_20 = 18 # GPIO 18 in GPIO.BCM mode; PIN 12 in GPIO.BOARD mode.
 up =  bytearray(b'\x9b\x06\x02\x01\x00\xfc\xa0\x9d')
 down = bytearray(b'\x9b\x06\x02\x02\x00\x0c\xa0\x9d')
 wake_up = bytearray(b'\x9b\x06\x02\x00\x00\x6c\xa1\x9d')
-
+# preset1 is set to lowest height (sitting)
+# preset2 is set to middle height (reading)
+# preset3 is set to high height (standing/rest)
+preset1 = bytearray(b'\x9b\x06\x02\x04\x00\xac\xa3\x9d')
+preset2 = bytearray(b'\x9b\x06\x02\x08\x00\xac\xa6\x9d')
+preset3 = bytearray(b'\x9b\x06\x02\x10\x00\xac\xac\x9d')
 
 def signal2height(signal):
 
@@ -94,14 +99,14 @@ def run_schedule(rounds):
         if not GPIO.input(PIN_20):
             print('desk inactive, activating desk...')
             GPIO.output(PIN_20, GPIO.HIGH)
-        serial0.write(down * 800)
+        serial0.write(preset1*10)
         time.sleep(3000)
         # then to rest.
         print('Going up to rest 10 mins...')
         if not GPIO.input(PIN_20):
             print('desk inactive, activating desk...')
             GPIO.output(PIN_20, GPIO.HIGH)
-        serial0.write(up * 600)
+        serial0.write(preset3*10)
         time.sleep(600)
         # after one round of work and rest, increment by 1 iteration.
         iteration += 1
