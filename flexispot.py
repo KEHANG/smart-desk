@@ -1,6 +1,12 @@
 import serial
 import time
+import logging
 import RPi.GPIO as GPIO
+
+GPIO.setwarnings(False)
+logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', 
+        level=logging.INFO, 
+        datefmt='%Y-%m-%d %H:%M:%S')
 
 PIN_20 = 18 # GPIO 18 in GPIO.BCM mode; PIN 12 in GPIO.BOARD mode.
 
@@ -89,29 +95,33 @@ def measure_height():
     return heights
 
 
+def run_mode(work, serial0):
+    if work:
+        logging.info('Going down to work for 50 mins...')
+        if not GPIO.input(PIN_20):
+            logging.info('desk inactive, activating desk...')
+            GPIO.output(PIN_20, GPIO.HIGH)
+        serial0.write(preset1*10)
+        time.sleep(3000)
+    else:
+        logging.info('Going up to rest 10 mins...')
+        if not GPIO.input(PIN_20):
+            logging.info('desk inactive, activating desk...')
+            GPIO.output(PIN_20, GPIO.HIGH)
+        serial0.write(preset3*10)
+        time.sleep(600)
+
+
 def run_schedule(rounds):
     serial0 = setup()
     GPIO.output(PIN_20, GPIO.HIGH)
     iteration = 0
     while iteration < rounds:
-        # first to work.
-        print('Going down to work for 50 mins...')
-        if not GPIO.input(PIN_20):
-            print('desk inactive, activating desk...')
-            GPIO.output(PIN_20, GPIO.HIGH)
-        serial0.write(preset1*10)
-        time.sleep(3000)
-        # then to rest.
-        print('Going up to rest 10 mins...')
-        if not GPIO.input(PIN_20):
-            print('desk inactive, activating desk...')
-            GPIO.output(PIN_20, GPIO.HIGH)
-        serial0.write(preset3*10)
-        time.sleep(600)
+        run_mode(iteration % 2, serial0)
         # after one round of work and rest, increment by 1 iteration.
         iteration += 1
     teardown()
 
 
 if __name__ == "__main__":
-    run_schedule(5)
+    run_schedule(8)
