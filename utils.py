@@ -3,11 +3,6 @@ import time
 import logging
 import RPi.GPIO as GPIO
 
-GPIO.setwarnings(False)
-logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', 
-        level=logging.INFO, 
-        datefmt='%Y-%m-%d %H:%M:%S')
-
 PIN_20 = 18 # GPIO 18 in GPIO.BCM mode; PIN 12 in GPIO.BOARD mode.
 
 up =  bytearray(b'\x9b\x06\x02\x01\x00\xfc\xa0\x9d')
@@ -111,17 +106,3 @@ def run_mode(work, serial0):
         serial0.write(preset3*10)
         time.sleep(600)
 
-
-def run_schedule(rounds):
-    serial0 = setup()
-    GPIO.output(PIN_20, GPIO.HIGH)
-    iteration = 0
-    while iteration < rounds:
-        run_mode(iteration % 2, serial0)
-        # after one round of work and rest, increment by 1 iteration.
-        iteration += 1
-    teardown()
-
-
-if __name__ == "__main__":
-    run_schedule(8)
