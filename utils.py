@@ -82,8 +82,6 @@ def teardown():
 
 
 def measure_height():
-    # setup board and pin
-    setup_board()
     # setup serial
     serial0 = setup_serial()
     # wake up the desk
