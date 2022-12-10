@@ -15,6 +15,7 @@ preset1 = bytearray(b'\x9b\x06\x02\x04\x00\xac\xa3\x9d')
 preset2 = bytearray(b'\x9b\x06\x02\x08\x00\xac\xa6\x9d')
 preset3 = bytearray(b'\x9b\x06\x02\x10\x00\xac\xac\x9d')
 
+
 def signal2height(signal):
 
     payload = signal[3:-3]
@@ -76,6 +77,7 @@ def setup():
 def teardown():
     GPIO.cleanup()
 
+
 def measure_height():
     # setup serial
     serial0 = setup()
@@ -90,19 +92,16 @@ def measure_height():
     return heights
 
 
-def run_mode(work, serial0):
-    if work:
-        logging.info('Going down to work for 50 mins...')
-        if not GPIO.input(PIN_20):
-            logging.info('desk inactive, activating desk...')
-            GPIO.output(PIN_20, GPIO.HIGH)
-        serial0.write(preset1*10)
-        time.sleep(3000)
-    else:
-        logging.info('Going up to rest 10 mins...')
-        if not GPIO.input(PIN_20):
-            logging.info('desk inactive, activating desk...')
-            GPIO.output(PIN_20, GPIO.HIGH)
-        serial0.write(preset3*10)
-        time.sleep(600)
+def run_mode(work, serial0, timeout):
+
+    if not GPIO.input(PIN_20):
+        logging.info('desk inactive, activating desk...')
+        GPIO.output(PIN_20, GPIO.HIGH)
+
+    msg = 'down to work' if work else 'up to rest'
+    logging.info(f'Going {msg} for {timeout} mins...')
+    encoded_cmd = preset1 if work else preset3
+
+    serial0.write(encoded_cmd * 10)
+    time.sleep(60 * timeout)
 
