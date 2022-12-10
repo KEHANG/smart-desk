@@ -13,11 +13,11 @@ REST_MODE = 0
 timeouts = {WORK_MODE: 50, REST_MODE: 10}
 
 def run_schedule():
-    serial0 = utils.setup()
+    utils.setup_board()
     iteration = 0
     while iteration < 2*rounds:
         mode = iteration % 2
-        utils.run_mode(mode, serial0, timeouts[mode])
+        utils.run_mode(mode, timeouts[mode])
         # after one round of work or rest, increment by 1 iteration.
         iteration += 1
     utils.teardown()

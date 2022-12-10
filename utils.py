@@ -55,19 +55,22 @@ def report_heights(serial0):
             height = signal2height(current_signal)
             if True: # len(heights) == 0 or heights[-1] != height:
                 heights.append(height)
-                print(current_signal, height)
+                # print(current_signal, height)
             # then reinitialize current_signal
             current_signal = b''
     return heights
 
 
-def setup():
+def setup_board():
     # Or GPIO.BOARD - GPIO Numbering vs Pin numbering
     GPIO.setmode(GPIO.BCM)
 
     # Turn desk in operating mode by setting controller pin20 to HIGH
     # This will allow us to send commands and to receive the current height
     GPIO.setup(PIN_20, GPIO.OUT)
+
+
+def setup_serial():
     # Set up serial communication.
     SERIAL_PORT = "/dev/ttyS0" # GPIO14 (TX) and GPIO15 (RX)
     serial0 = serial.Serial(SERIAL_PORT, 9600, timeout=500)
@@ -79,29 +82,32 @@ def teardown():
 
 
 def measure_height():
+    # setup board and pin
+    setup_board()
     # setup serial
-    serial0 = setup()
+    serial0 = setup_serial()
     # wake up the desk
     GPIO.output(PIN_20, GPIO.HIGH)
     time.sleep(.5)
     serial0.write(wake_up)
     time.sleep(.5)
     GPIO.output(PIN_20, GPIO.LOW)
-    print(serial0.in_waiting)
     heights = report_heights(serial0)
     return heights
 
 
-def run_mode(work, serial0, timeout):
+def run_mode(work, timeout):
 
     if not GPIO.input(PIN_20):
         logging.info('desk inactive, activating desk...')
         GPIO.output(PIN_20, GPIO.HIGH)
+        time.sleep(1)
 
     msg = 'down to work' if work else 'up to rest'
     logging.info(f'Going {msg} for {timeout} mins...')
     encoded_cmd = preset1 if work else preset3
-
+    
+    serial0 = setup_serial()
     serial0.write(encoded_cmd * 10)
     time.sleep(60 * timeout)
 
