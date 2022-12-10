@@ -14,7 +14,6 @@ timeouts = {WORK_MODE: 50, REST_MODE: 10}
 
 def run_schedule():
     serial0 = utils.setup()
-    GPIO.output(utils.PIN_20, GPIO.HIGH)
     iteration = 0
     while iteration < 2*rounds:
         mode = iteration % 2
