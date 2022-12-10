@@ -12,10 +12,10 @@ rounds = 8
 def run_schedule():
     serial0 = utils.setup()
     GPIO.output(utils.PIN_20, GPIO.HIGH)
-    iteration = 1
-    while iteration < rounds:
+    iteration = 0
+    while iteration < 2*rounds:
         utils.run_mode(iteration % 2, serial0)
-        # after one round of work and rest, increment by 1 iteration.
+        # after one round of work or rest, increment by 1 iteration.
         iteration += 1
     utils.teardown()
 
