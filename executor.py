@@ -1,4 +1,5 @@
 import utils
+import intent_detection
 import logging
 import RPi.GPIO as GPIO
 
@@ -23,6 +24,7 @@ def execute(intent, **kwargs):
 if __name__ == "__main__":
     # setup board and pin
     utils.setup_board()
-    intent = 'height_report'
-    kwargs = {'timeout': 0.5}
+    text = intent_detection.speech_recognition()
+    intent, kwargs = intent_detection.detect_intent(text)
+    print(intent, kwargs)
     execute(intent, **kwargs)
