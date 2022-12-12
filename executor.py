@@ -44,15 +44,19 @@ def continuous_listen_and_act(wake_word='Emma'):
       # Listen for speech
       with sr.Microphone() as source:
         print("Say something!")
-        audio = r.listen(source)
+        try:
+          audio = r.listen(source, timeout=60)
+        except sr.WaitTimeoutError:
+          print("Wait timeout. Continuing...")
+          continue
 
-      try:
-        # Convert the speech to text
-        text = r.recognize_google(audio)
-        print("Audio detected:", text)
-      except sr.UnknownValueError:
-        print("Nothing said. Listening again...")
-        continue
+        try:
+          # Convert the speech to text
+          text = r.recognize_google(audio)
+          print("Audio detected:", text)
+        except sr.UnknownValueError:
+          print("Nothing said. Listening again...")
+          continue
 
       # Check if the wake word is present in the speech
       if is_wake_word(text, wake_word):
