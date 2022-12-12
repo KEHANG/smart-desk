@@ -54,6 +54,9 @@ def detect_intent(text):
     elif any(word in text for word in report_height_keywords):
         intent = "height_report"
         kwargs = {}
+    else:
+        intent = 'null_intent'
+        kwargs = {}
 
     print(f"The intent is {intent} with additional arguments: {kwargs}.")
 
